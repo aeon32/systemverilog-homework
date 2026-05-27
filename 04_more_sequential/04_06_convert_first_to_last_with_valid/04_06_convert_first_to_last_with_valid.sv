@@ -23,6 +23,26 @@ module conv_first_to_last_no_ready
     // to the 'last' output status signal.
     //
     // See README for full description of the task with timing diagram.
+   logic [width - 1 : 0] last_valid_data_reg;
+   logic has_last_valid_data_reg;
 
+   assign down_valid = up_valid  && has_last_valid_data_reg; 
+   assign down_data = last_valid_data_reg;
+   assign down_last = up_valid && up_first && has_last_valid_data_reg;
+
+
+   always_ff @ (posedge clock)
+   if (reset)
+     has_last_valid_data_reg <= '0;
+   else if (up_valid) begin
+     has_last_valid_data_reg <=1;
+     last_valid_data_reg <= up_data;
+   end
+   else begin
+     //has_last_valid_data_reg <=0;  
+   end
+     
+
+   
 
 endmodule

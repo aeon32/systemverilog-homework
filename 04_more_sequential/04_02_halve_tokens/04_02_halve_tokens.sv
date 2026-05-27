@@ -19,5 +19,15 @@ module halve_tokens
     // a -> 110_011_101_000_1111
     // b -> 010_001_001_000_0101
 
+  logic have_first_one_reg;
+
+  assign b = a && have_first_one_reg;
+
+  always_ff @ (posedge clk)
+  if (rst )
+    have_first_one_reg <= '0;
+  else if (a) begin
+    have_first_one_reg <= ! have_first_one_reg;
+  end
 
 endmodule

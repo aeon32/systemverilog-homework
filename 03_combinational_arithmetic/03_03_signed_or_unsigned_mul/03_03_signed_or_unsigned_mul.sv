@@ -33,6 +33,21 @@ module unsigned_mul
 
 endmodule
 
+
+module signed_mul
+# (
+  parameter n = 8
+)  
+(
+  input  signed [    n - 1:0] a, b,
+  output signed [2 * n - 1:0] res
+);
+
+  assign res = a * b;
+
+endmodule
+
+
 //----------------------------------------------------------------------------
 // Task
 //----------------------------------------------------------------------------
@@ -52,5 +67,26 @@ module signed_or_unsigned_mul
   input                signed_mul,
   output [2 * n - 1:0] res
 );
+   
+  logic signed [     n - 1:0 ] a_signed;
+  assign a_signed = a;
+  logic signed [     n - 1:0 ] b_signed;
+  assign b_signed = b;
+  logic signed [ 2 * n - 1:0 ] res_signed;
+  assign res_signed = a_signed * b_signed;
+
+  logic [2 * n - 1:0] res_unsigned;
+  assign res_unsigned = a * b;
+
+  logic [2 * n - 1:0] res_aux;
+  
+    always @* begin
+     if (signed_mul) 
+        res_aux = res_signed;
+     else 
+        res_aux = res_unsigned;
+
+    end
+  assign res = res_aux;    
 
 endmodule

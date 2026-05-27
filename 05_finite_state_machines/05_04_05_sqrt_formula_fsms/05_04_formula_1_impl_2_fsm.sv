@@ -41,5 +41,126 @@ module formula_1_impl_2_fsm
     // FPGA-Systems Magazine :: FSM :: Issue ALFA (state_0)
     // You can download this issue from https://fpga-systems.ru/fsm
 
+        enum logic [2:0]
+    {
+        st_idle       = 3'd0,
+        st_wait_1_res = 3'd1,
+        st_wait_2_res = 3'd2
+    }
+    state, next_state;
+
+    logic [31:0] y1, y2, c_reg;
+    logic [2:0] got;
+
+    //------------------------------------------------------------------------
+    // Next state and isqrt interface
+
+    always_comb
+    begin
+        next_state  = state;
+
+        isqrt_1_x_vld = '0;
+        isqrt_1_x     = 'x;  // Don't care
+
+        isqrt_2_x_vld = '0;
+        isqrt_2_x     = 'x;  // Don't care
+
+        y1 = 0;
+        y2 = 0;
+
+        // This lint warning is bogus because we assign the default value above
+        // verilator lint_off CASEINCOMPLETE
+
+        case (state)
+            st_idle:
+            begin
+                isqrt_1_x = a;
+                isqrt_2_x = b;
+
+                if (arg_vld)
+                begin
+                    isqrt_1_x_vld = '1;
+                    isqrt_2_x_vld = '1;
+                    next_state  = st_wait_1_res;
+                end
+            end
+
+            st_wait_1_res:
+            begin
+                if (isqrt_1_y_vld)
+                begin
+                    isqrt_1_x = c_reg;
+                    isqrt_1_x_vld = '1;
+                    y1 = isqrt_1_y;
+                    next_state  = st_wait_2_res;
+                end
+                if (isqrt_2_y_vld)
+                begin
+                    isqrt_2_x = c;
+                    isqrt_2_x_vld = !isqrt_1_y_vld;
+                    y2 = isqrt_2_y;
+                    next_state  = st_wait_2_res;
+                end
+            end
+
+            st_wait_2_res:
+            begin
+                if (isqrt_1_y_vld)
+                begin
+                    y1 = isqrt_1_y;
+                end
+
+                if (isqrt_2_y_vld)
+                begin
+                    y2 = isqrt_2_y;
+                end
+                if ((got + isqrt_1_y_vld + isqrt_2_y_vld) == 3)
+                begin
+                    next_state = st_idle;
+                end
+
+
+            end
+        endcase
+
+  
+        // verilator lint_on  CASEINCOMPLETE
+
+    end
+
+    //------------------------------------------------------------------------
+    // Assigning next state
+
+    always_ff @ (posedge clk)
+        if (rst)
+            state <= st_idle;
+        else
+            state <= next_state;
+
+    //------------------------------------------------------------------------
+    // Accumulating the result
+
+    always_ff @ (posedge clk)
+        if (rst)
+            res_vld <= '0;
+        else
+            res_vld <= (state == st_wait_2_res && next_state == st_idle);
+
+    always_ff @ (posedge clk)
+        if (state == st_idle)
+        begin    
+            res <= '0;
+            got <= '0;
+            if (arg_vld)
+                c_reg <= c;
+        end    
+        else if (isqrt_1_y_vld || isqrt_2_y_vld )
+        begin
+            res <= res + y1 + y2;
+            got <= got + isqrt_1_y_vld + isqrt_2_y_vld;             
+        end           
+           
+
+
 
 endmodule
