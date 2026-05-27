@@ -26,6 +26,29 @@ module serial_to_parallel
     //
     // Note:
     // Check the waveform diagram in the README for better understanding.
+    localparam pointer_width = $clog2(width);
+    logic [width - 1:0] parallel_data_r;
+    logic [width - 1:0] parallel_data_l;
+  
+
+    logic [pointer_width - 1 : 0] data_pointer_r;
+
+    
+    assign parallel_valid = (data_pointer_r == (width - 1)) && serial_valid;
+    assign parallel_data = {serial_data, parallel_data_r[width-1:1]};
+    
+    always_ff @ (posedge clk)
+    if (rst) begin
+      parallel_data_r <= {width{1'b0}};
+      data_pointer_r <= 0;
+    end
+    else begin
+      if (serial_valid) begin
+        parallel_data_r <= parallel_data;
+        data_pointer_r <= (parallel_valid) ? 0 : data_pointer_r + 1 ;
+          
+      end  
+    end
 
 
 endmodule

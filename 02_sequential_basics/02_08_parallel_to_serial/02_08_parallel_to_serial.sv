@@ -6,7 +6,7 @@ module parallel_to_serial
 # (
     parameter width = 8
 )
-(
+(                                                                        
     input                      clk,
     input                      rst,
 
@@ -28,6 +28,38 @@ module parallel_to_serial
     //
     // Note:
     // Check the waveform diagram in the README for better understanding.
+      localparam counter_width = $clog2(width);
 
+      logic [width - 2:0] data_r;
+      logic [counter_width - 1 : 0 ] counter_r;
+      logic busy_l;
+      logic busy_r;
+      logic serial_data_l;
+      logic over;
+
+      assign serial_valid = parallel_valid || busy_r;
+      assign serial_data = busy_r ?  data_r[0] : parallel_data[0];
+
+      assign busy = busy_r;
+      assign over = (counter_r == (width - 1 ));
+
+
+
+      always_ff @ (posedge clk)
+        if (rst ) begin
+            counter_r <= 0;
+            busy_r <= 0;
+        end
+        else if (~busy_r & parallel_valid) begin
+            data_r <= parallel_data[width - 1 : 1];
+            busy_r <= 1;
+            counter_r <=1;
+        end
+        else if (busy_r)
+        begin
+            data_r <= data_r >> 1;
+            busy_r <= over ? 0 : 1;
+            counter_r <= over ? 0 : counter_r + 1;
+        end
 
 endmodule

@@ -75,5 +75,50 @@ module detect_6_bit_sequence_using_fsm
   //
   // Hint: See Lecture 3 for details
 
+  enum logic[3:0]
+  {
+     IDLE    = 0,
+     S1      = 1,
+     S11     = 2,
+     S110    = 3,
+     S1100   = 4,
+     S11001  = 5,
+     S110011 = 6
+  } state, new_state;
+
+
+
+  always_comb
+  begin
+    new_state = state;
+    case (state)
+      IDLE:    if (a) new_state = S1;
+      S1:      if (a) new_state = S11;
+               else   new_state = IDLE;
+      S11:     if (~a) new_state = S110;
+      S110:    if (~a) new_state = S1100;
+               else    new_state = S1;
+      S1100:   if ( a) new_state = S11001;
+               else    new_state = IDLE;
+      S11001:  if ( a) new_state = S110011;
+               else    new_state = IDLE;
+      S110011: if ( a) new_state = S11;
+               else    new_state = S110;              
+     endcase
+  end    
+
+
+    // verilator lint_on CASEINCOMPLETE
+      // Output logic (depends only on the current state)
+    assign detected = (state == S110011);
+
+    // State update
+
+    always_ff @ (posedge clk)
+    if (rst)
+      state <= 1;
+    else
+      state <= new_state;
+
 
 endmodule
