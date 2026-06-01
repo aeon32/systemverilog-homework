@@ -60,6 +60,75 @@ module formula_1_pipe_aware_fsm
     // in the article by Yuri Panchul published in
     // FPGA-Systems Magazine :: FSM :: Issue ALFA (state_0)
     // You can download this issue from https://fpga-systems.ru/fsm#state_0
+    logic [31:0] x, y, res_reg;
+    logic [1:0][31:0] x_reg;
+
+    logic x_vld, y_vld;
+    logic [2:0] x_counter, next_x_counter, y_counter, next_y_counter;
+
+    isqrt sqrt_a
+    (
+        .clk   ( clk ),
+        .rst   ( rst ),
+        .x     ( x),
+        .x_vld ( x_vld ),
+        .y (y),
+        .y_vld ( y_vld )
+    );
+
+    always_comb
+    begin
+        next_x_counter = x_counter;
+        next_y_counter = y_counter;
+        x_vld = 0;
+        res_vld = 0;
+        res = res_reg;
+
+        if (x_counter == 0)
+        begin
+            if (arg_vld)
+            begin
+                x = a;
+                x_vld = 1;
+                next_x_counter = 2; //2 items in the queue
+                next_y_counter = 3;
+                res = 0;
+            end
+        end
+        else
+        begin
+            x_vld = 1;
+            next_x_counter = x_counter - 1;
+            x = x_reg[next_x_counter];
+        end
+        
+        if (y_vld)
+        begin
+            next_y_counter = y_counter - 1;
+            res = y + res_reg;
+            res_vld = y_counter == 1;
+        end
+
+
+    end
+
+  always_ff @ (posedge clk)
+    if (rst)
+    begin
+        x_counter <= 0;
+        y_counter <= 0;
+    end
+    else
+    begin
+        x_counter <= next_x_counter;
+        y_counter <= next_y_counter;
+        res_reg <= res;
+        if (arg_vld)
+        begin
+            x_reg[1] <=b;
+            x_reg[0] <=c;
+        end
+    end
 
 
 endmodule

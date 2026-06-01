@@ -41,6 +41,37 @@ module formula_1_pipe
     // in the article by Yuri Panchul published in
     // FPGA-Systems Magazine :: FSM :: Issue ALFA (state_0)
     // You can download this issue from https://fpga-systems.ru/fsm#state_0
+    logic [31:0] y_a, y_b, y_c;
+
+    isqrt sqrt_a
+    (
+        .clk   ( clk ),
+        .rst   ( rst ),
+        .x     ( a),
+        .x_vld ( arg_vld ),
+        .y (y_a),
+        .y_vld ( res_vld )
+    );
+
+    isqrt sqrt_b
+    (
+        .clk   ( clk ),
+        .rst   ( rst ),
+        .x     ( b),
+        .x_vld ( arg_vld ),
+        .y (y_b)
+    );
+
+    isqrt sqrt_c
+    (
+        .clk   ( clk ),
+        .rst   ( rst ),
+        .x     ( c),
+        .x_vld ( arg_vld ),
+        .y (y_c)
+    );
+
+    assign res = 32' (y_a) + 32' (y_b) + 32' (y_c);
 
 
 endmodule

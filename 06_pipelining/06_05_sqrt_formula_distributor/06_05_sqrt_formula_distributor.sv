@@ -42,6 +42,50 @@ module sqrt_formula_distributor
     // Hint:
     // Instantiate sufficient number of "formula_1_impl_1_top", "formula_1_impl_2_top",
     // or "formula_2_top" modules to achieve desired performance.
+    localparam instances_num = 5;
+    localparam module_latency = 50;
+    
+    localparam distributor_index_width = $clog2(instances_num);
+    logic [distributor_index_width - 1 : 0] distributor_index;
+    
+    wire arg_valids [0:instances_num - 1];;
+   
+    generate
+        genvar i;
+        for (i = 0; i < instances_num; i++)
+        begin
+            formula_1_impl_1_top formula_module
+            (
+                .rst(rst),
+                .clk(clk),
+                .arg_vld(arg_valids[i])
+
+            );
+            
+
+            if (formula == 1)
+            begin : if_formula_1
+        
+            end    
+        
+
+        end
+
+        
+
+    endgenerate
+    
 
 
-endmodule
+
+    always_ff @ (posedge clk)
+    if (rst)
+        distributor_index <= '0;
+    else begin
+        if (arg_vld)
+        begin
+            distributor_index<= distributor_index == instances_num - 1 ? 0 : distributor_index + 1;
+        end
+    end
+
+endmodule : sqrt_formula_distributor

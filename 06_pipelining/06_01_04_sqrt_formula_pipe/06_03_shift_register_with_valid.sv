@@ -77,6 +77,74 @@ module shift_register_with_valid
     // see the article by Yuri Panchul published in
     // FPGA-Systems Magazine :: FSM :: Issue ALFA (state_0)
     // You can download this issue from https://fpga-systems.ru/fsm#state_0
+    logic [width - 1:0] data [0:depth - 1];
+    logic [0:depth - 1] valids;
 
+    always_ff @ (posedge clk)
+    if (rst)
+    begin
+        valids <= 0;
+    end
+    else
+    begin
+        data  [0] <= in_data;
+        valids[0] <= in_vld;           
+
+        for (int i = 1; i < depth; i ++)
+        begin
+            if (valids [i-1])
+                data [i] <= data [i - 1];
+            
+            valids[i] <= valids [i - 1];
+        end
+    end
+
+    assign out_data = data [depth - 1];
+    assign out_vld = valids [depth - 1];
 
 endmodule
+
+
+module shift_register_with_valid_new
+# (
+    parameter width = 8, depth = 8
+)
+(
+    input                clk,
+    input                rst,
+
+    input                in_vld,
+    input  [width - 1:0] in_data,
+
+    output               out_vld,
+    output [width - 1:0] out_data
+);
+
+    // Task:
+    //
+    // Implement a variant of a shift register module
+    // that moves a transfer of data only if this transfer is valid.
+    //
+    // For the discussion of shift registers
+    // see the article by Yuri Panchul published in
+    // FPGA-Systems Magazine :: FSM :: Issue ALFA (state_0)
+    // You can download this issue from https://fpga-systems.ru/fsm#state_0
+    logic [width - 1 : 0 ] out_data_reg;
+    logic out_data_valid_reg;
+
+    always_ff @ (posedge clk)
+    if (rst)
+    begin
+        out_data_valid_reg <= 0;
+    end
+    else
+    begin
+        out_data_valid_reg <= in_vld;
+        out_data_reg <= in_data;
+    end
+
+    assign out_vld = out_data_valid_reg;
+    assign out_data = out_data_reg;
+
+endmodule
+
