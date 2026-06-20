@@ -59,7 +59,7 @@ module put_in_order
     logic [input_index_width - 1 : 0] read_index;
 
     //input queue
-    logic [width - 1 : 0] data_regs [ 0:input_index_width - 1];
+    logic [width - 1 : 0] data_regs [ 0:n_inputs - 1];
     logic [n_inputs - 1 : 0 ] data_regs_valids;
     logic [n_inputs - 1 : 0 ] new_data_regs_valids;
 
